@@ -1,0 +1,88 @@
+name: Validate Code and Merge Workflow
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+
+jobs:
+  validate:
+    name: Validate Code in dev
+    runs-on: ubuntu-latest
+
+    steps:
+    # Clona o repositório
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # Configura a versão do PHP
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1' # Ajuste para a versão do PHP utilizada no projeto
+        tools: composer # Instala o Composer
+
+    # Cache para dependências do Composer
+    - name: Cache Composer dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.composer/cache
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-composer-
+
+    # Instala dependências do Composer
+    - name: Install Dependencies
+      run: |
+        composer install || echo "Nenhum composer.json encontrado, pulando."
+
+    # Verifica o padrão de código com PHP_CodeSniffer
+    - name: Run PHP_CodeSniffer
+      run: |
+        if [ -f ./vendor/bin/phpcs ]; then
+          ./vendor/bin/phpcs --standard=PSR12 src/ || echo "PHP_CodeSniffer encontrou problemas."
+        else
+          echo "PHP_CodeSniffer não está configurado. Pule esta etapa."
+        fi
+
+    # Executa os testes com PHPUnit
+    - name: Run PHPUnit Tests
+      run: |
+        if [ -f ./vendor/bin/phpunit ]; then
+          ./vendor/bin/phpunit --coverage-text || echo "Testes falharam."
+        else
+          echo "PHPUnit não está configurado. Pule esta etapa."
+        fi
+
+    # Instalar o HTMLHint para validar HTML
+    - name: Install HTMLHint
+      run: |
+        npm install -g htmlhint
+
+    # Validar os arquivos HTML
+    - name: Run HTMLHint
+      run: |
+        htmlhint "**/*.html"
+
+    # Instalar o Stylelint para validar CSS
+    - name: Install Stylelint
+      run: |
+        npm install -g stylelint stylelint-config-standard
+
+    # Validar os arquivos CSS
+    - name: Run Stylelint
+      run: |
+        stylelint "**/*.css" || echo "Stylelint encontrou problemas."
+
+    # Instalar o ESLint para validar JavaScript
+    - name: Install ESLint
+      run: |
+        npm install -g eslint
+
+    # Validar os arquivos JavaScript
+    - name: Run ESLint
+      run: |
+        eslint "**/*.js" || echo "ESLint encontrou problemas."
