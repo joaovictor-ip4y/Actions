@@ -11,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $erro = 'Todods os campos devem ser preenchidos!';
     } else {
         // Simulando envio de email ou outro processamento
-        $sucesso = 'Mensagem enviada com sucesso!';
+        $sucesso = 'fsMensagem enviada com sucesso!';
     }
 }
 ?>
