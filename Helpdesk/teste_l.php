@@ -2,7 +2,7 @@
 // PHP com erros de sintaxe e de padrão PSR-12
 class TestClass {
 function testMethod () { // Erro: espaço desnecessário entre o nome do método e os parênteses
-echo "Erro de estilo no PHP"; // Erro: falta de indentação e visibilidade ausente no método
+echo "Edasrro de estilo no PHP"; // Erro: falta de indentação e visibilidade ausente no método
 }
 }
 
