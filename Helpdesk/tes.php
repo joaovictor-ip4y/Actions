@@ -8,7 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Validação simples
     if (empty($nome) || empty($email) || empty($mensagem)) {
-        $erro = 'Todos os campos devem ser preenchidos!';
+        $erro = 'Todods os campos devem ser preenchidos!';
     } else {
         // Simulando envio de email ou outro processamento
         $sucesso = 'Mensagem enviada com sucesso!';
