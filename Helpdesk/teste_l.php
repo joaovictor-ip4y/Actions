@@ -1,31 +1,35 @@
 <?php
-// PHP code com problemas no padrão PSR-12
-function testFunction() {
-    echo "<!DOCTYPE html>
-    <html>
+// PHP com erros de sintaxe e de padrão PSR-12
+class TestClass {
+function testMethod () { // Erro: espaço desnecessário entre o nome do método e os parênteses
+echo "Erro de estilo no PHP"; // Erro: falta de indentação e visibilidade ausente no método
+}
+}
+
+$object = new TestClass();
+$object->testMethod();
+?>
+<html>
     <head>
-        <title>Test Page</title>
+        <title>Teste</title>
         <style>
             /* CSS com erros */
             body {
-                background-colour: #f0f0f0; /* Propriedade escrita incorretamente */
-                font-family: Arial, sans-serif;
+                background-colour: #ffffff; /* Erro: propriedade incorreta */
+                font-weight bold; /* Erro: falta de dois-pontos */
             }
-            .error {
-                colorr: blue; /* Propriedade inválida */
-                font-weight bold; /* Faltando dois-pontos */
+            h1 {
+                color: red /* Erro: ponto e vírgula ausente */
             }
         </style>
     </head>
     <body>
-        <h1 class='error'>Welcome to Test Page</h1>
+        <h1>Teste de Página</h1>
         <script>
             // JavaScript com erros
-            var x = 10
-            console.log(x));
+            const test = "Erro no JavaScript" // Erro: falta de ponto e vírgula
+            console.log(test)) // Erro: parêntese extra
         </script>
     </body>
-    </html>";
-}
-testFunction();
-?>
+</html>
+
