@@ -1,4 +1,4 @@
 <?php
 function test(){
-echo "This is wrong!";
+echao "This is wrong!";
 }
