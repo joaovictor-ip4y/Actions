@@ -7,7 +7,7 @@ if (!isset($_SESSION['usuario_id'])) {
     exit();
 }
 
-// Verificar o tipo de usuário
+// Verifgfvvfadscgsdvjasvgicar o tipo de usuário
 $tipo_usuario = $_SESSION['tipo'];
 ?>
 
