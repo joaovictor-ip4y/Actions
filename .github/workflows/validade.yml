@@ -1,16 +1,16 @@
-name: Validate Code and Merge Workflow
+name: Validate PHP Repository
 
 on:
   push:
     branches:
-      - dev
+      - main
   pull_request:
     branches:
-      - dev
+      - main
 
 jobs:
   validate:
-    name: Validate Code in dev
+    name: Validate Code
     runs-on: ubuntu-latest
 
     steps:
@@ -33,12 +33,10 @@ jobs:
         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
           ${{ runner.os }}-composer-
-
     # Instala dependências do Composer
     - name: Install Dependencies
       run: |
         composer install || echo "Nenhum composer.json encontrado, pulando."
-
     # Verifica o padrão de código com PHP_CodeSniffer
     - name: Run PHP_CodeSniffer
       run: |
@@ -47,7 +45,6 @@ jobs:
         else
           echo "PHP_CodeSniffer não está configurado. Pule esta etapa."
         fi
-
     # Executa os testes com PHPUnit
     - name: Run PHPUnit Tests
       run: |
@@ -56,32 +53,26 @@ jobs:
         else
           echo "PHPUnit não está configurado. Pule esta etapa."
         fi
-
     # Instalar o HTMLHint para validar HTML
     - name: Install HTMLHint
       run: |
         npm install -g htmlhint
-
     # Validar os arquivos HTML
     - name: Run HTMLHint
       run: |
         htmlhint "**/*.html"
-
     # Instalar o Stylelint para validar CSS
     - name: Install Stylelint
       run: |
         npm install -g stylelint stylelint-config-standard
-
     # Validar os arquivos CSS
     - name: Run Stylelint
       run: |
         stylelint "**/*.css" || echo "Stylelint encontrou problemas."
-
     # Instalar o ESLint para validar JavaScript
     - name: Install ESLint
       run: |
         npm install -g eslint
-
     # Validar os arquivos JavaScript
     - name: Run ESLint
       run: |
