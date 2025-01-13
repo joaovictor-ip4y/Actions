@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    bootstrap="vendor/autoload.php"
+    colors="true"
+    verbose="true"
+    coverage-text="true"
+    coverage-clover="coverage/clover.xml">
+    <testsuites>
+        <testsuite name="Calculator Test Suite">
+            <directory>./tests</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
+
