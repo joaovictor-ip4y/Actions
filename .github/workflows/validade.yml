@@ -37,13 +37,13 @@ jobs:
     # Instala dependências do Composer
     - name: Install Dependencies
       run: |
-        composer install || echo "Nenhum composer.json encontrado, pulando."
+        composer install || { echo "Nenhum composer.json encontrado, pulando."; exit 1; }
 
     # Verifica o padrão de código com PHP_CodeSniffer
     - name: Run PHP_CodeSniffer
       run: |
         if [ -f ./vendor/bin/phpcs ]; then
-          ./vendor/bin/phpcs --standard=PSR12 src/ || echo "PHP_CodeSniffer encontrou problemas."
+          ./vendor/bin/phpcs --standard=PSR12 src/ || { echo "PHP_CodeSniffer encontrou problemas."; exit 1; }
         else
           echo "PHP_CodeSniffer não está configurado. Pule esta etapa."
         fi
@@ -52,7 +52,7 @@ jobs:
     - name: Run PHPUnit Tests
       run: |
         if [ -f ./vendor/bin/phpunit ]; then
-          ./vendor/bin/phpunit --coverage-text || echo "Testes falharam."
+          ./vendor/bin/phpunit --coverage-clover=coverage/clover.xml || { echo "Testes falharam."; exit 1; }
         else
           echo "PHPUnit não está configurado. Pule esta etapa."
         fi
@@ -65,7 +65,7 @@ jobs:
     # Validar os arquivos HTML
     - name: Run HTMLHint
       run: |
-        htmlhint "**/*.html"
+        htmlhint "**/*.html" || { echo "HTMLHint encontrou problemas."; exit 1; }
 
     # Instalar o Stylelint para validar CSS
     - name: Install Stylelint
@@ -75,7 +75,7 @@ jobs:
     # Validar os arquivos CSS
     - name: Run Stylelint
       run: |
-        stylelint "**/*.css" || echo "Stylelint encontrou problemas."
+        stylelint "**/*.css" || { echo "Stylelint encontrou problemas."; exit 1; }
 
     # Instalar o ESLint para validar JavaScript
     - name: Install ESLint
@@ -85,7 +85,7 @@ jobs:
     # Validar os arquivos JavaScript
     - name: Run ESLint
       run: |
-        eslint "**/*.js" || echo "ESLint encontrou problemas."
+        eslint "**/*.js" || { echo "ESLint encontrou problemas."; exit 1; }
 
     # Atualizando para a versão mais recente da ação de upload de artefatos
     - name: Upload Code Coverage Report
