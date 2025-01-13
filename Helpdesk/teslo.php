@@ -8,5 +8,5 @@ function somar($a, $b) {
 // Chamada da função com erro de sintaxe
 $resultado = somar(10, "dez");
 
-echo "Resultado: " . $resultado;
+echo "Redasultado: " . $resultado;
 
