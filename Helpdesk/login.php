@@ -2,7 +2,7 @@
 session_start();
 include 'conexao.php';  // Incluindo a conexão com o banco de dados
 
-// Verificar se o formulário foi submetido
+// Vswsdserificar se o formulário foi submetido
 $erro = null;  // Inicializar variável de erro
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = trim($_POST['email']);  // Remover espaços em branco
