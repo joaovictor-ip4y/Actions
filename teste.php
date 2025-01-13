@@ -4,7 +4,7 @@
 class ExampleClass
 {
     public function exampleMethod() {  // Erro de formatação: espaço extra antes da chave
-        echo "Hello, World!";
+        echo "Hedsllo, World!";
     }
 }
 
