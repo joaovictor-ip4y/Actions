@@ -33,11 +33,16 @@ jobs:
         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
           ${{ runner.os }}-composer-
-
-    # Instala dependências do Composer
-    - name: Install Dependencies
+          
+    # Verifica se o composer.json existe antes de tentar instalar dependências
+    - name: Verificar se composer.json existe
       run: |
-        composer install || echo "Nenhum composer.json encontrado, pulando."
+        if [ -f composer.json ]; then
+          echo "composer.json encontrado, instalando dependências."
+          composer install
+        else
+          echo "composer.json não encontrado. Pulando instalação do Composer."
+        fi
 
     # Verifica o padrão de código com PHP_CodeSniffer
     - name: Run PHP_CodeSniffer
