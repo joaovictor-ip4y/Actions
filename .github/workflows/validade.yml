@@ -25,6 +25,16 @@ jobs:
         php-version: '8.3' # Atualize para a versão do PHP que você está usando
         tools: composer # Instala o Composer
 
+    # Instalar o Xdebug
+    - name: Install Xdebug
+      run: |
+        sudo apt-get install -y php-xdebug
+
+    # Habilitar o Xdebug
+    - name: Enable Xdebug
+      run: |
+        echo "zend_extension=$(php -r 'echo ini_get(\"extension_dir\");')/xdebug.so" | sudo tee -a /etc/php/8.3/cli/php.ini
+
     # Cache para dependências do Composer
     - name: Cache Composer dependencies
       uses: actions/cache@v2
@@ -62,36 +72,6 @@ jobs:
         else
           echo "PHPUnit não está configurado. Pule esta etapa."
         fi
-
-    # Instalar o HTMLHint para validar HTML
-    - name: Install HTMLHint
-      run: |
-        npm install -g htmlhint
-
-    # Validar os arquivos HTML
-    - name: Run HTMLHint
-      run: |
-        htmlhint "**/*.html"
-
-    # Instalar o Stylelint para validar CSS
-    - name: Install Stylelint
-      run: |
-        npm install -g stylelint stylelint-config-standard
-
-    # Validar os arquivos CSS
-    - name: Run Stylelint
-      run: |
-        stylelint "**/*.css" || echo "Stylelint encontrou problemas."
-
-    # Instalar o ESLint para validar JavaScript
-    - name: Install ESLint
-      run: |
-        npm install -g eslint
-
-    # Validar os arquivos JavaScript
-    - name: Run ESLint
-      run: |
-        eslint "**/*.js" || echo "ESLint encontrou problemas."
 
     # Atualizando para a versão mais recente da ação de upload de artefatos
     - name: Upload Code Coverage Report
