@@ -25,6 +25,16 @@ jobs:
         php-version: '8.3' # Atualize para a versão do PHP que você está usando
         tools: composer # Instala o Composer
 
+    # Instalar o Xdebug
+    - name: Install Xdebug
+      run: |
+        sudo apt-get install -y php-xdebug
+
+    # Habilitar o Xdebug
+    - name: Enable Xdebug
+      run: |
+        echo "zend_extension=$(php -r 'echo ini_get(\"extension_dir\");')/xdebug.so" | sudo tee -a /etc/php/8.3/cli/php.ini
+
     # Cache para dependências do Composer
     - name: Cache Composer dependencies
       uses: actions/cache@v2
