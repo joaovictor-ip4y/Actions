@@ -49,3 +49,4 @@ jobs:
           curl -X POST -H 'Content-type: application/json' --data '{
             "text": "Ocorreu um erro ao tentar mesclar o PR #${{ env.PR_NUMBER }} \n*Link:* ${{ env.PR_URL }}"
           }' ${{ secrets.SLACK }}
+
