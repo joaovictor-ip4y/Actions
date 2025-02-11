@@ -1,0 +1,51 @@
+name: Merge Back Hotfix
+
+on:
+  pull_request:
+    types: [closed]         
+    branches:
+      - master              
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge-back:
+    if: ${{ github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'hotfix/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Criar Pull Request da master para dev
+        id: create_pr
+        run: |
+          PR_URL=$(gh pr create \
+            --base dev \
+            --head master \
+            --title "Merge back hotfix para dev" \
+            --body "Sincronizando as correções da master para dev.")
+          PR_NUMBER=$(echo $PR_URL | grep -oE '[0-9]+$')
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+      - name: Mesclar PR automaticamente (Squash)
+        if: env.PR_NUMBER != ''
+        run: |
+          gh pr merge $PR_NUMBER --squash
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+      - name: Notificar no Slack (Erro)
+        if: failure()
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{
+            "text": "Ocorreu um erro de Hotfix ao tentar mesclar o PR #${{ env.PR_NUMBER }} \n*Link:* #${{ env.PR_URL }}"
+          }' ${{ secrets.SLACK }}
