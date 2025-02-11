@@ -9,7 +9,7 @@ class Calculator
         return $a + $b;
     }
 
-    public function subtract($a, $b
+    public function subtract($a, $b1)
     {
         return $a - $b;
     }
