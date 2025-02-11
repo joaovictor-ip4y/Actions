@@ -1,4 +1,7 @@
-jdcksd ka<?php
+
+jnsdcbjdcksd ka<?php
+
+
 
 // Função para somar dois números
 function somar($a, $b) {
