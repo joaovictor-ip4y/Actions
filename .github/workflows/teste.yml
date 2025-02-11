@@ -1,51 +1,51 @@
-name: Merge Back Hotfix
+nome : Mesclar de volta Hotfix
 
-on:
-  pull_request:
-    types: [closed]         
-    branches:
-      - master              
+sobre :
+  solicitação de pull :
+    tipos : [fechado]         
+    galhos :
+      - mestre              
 
-permissions:
-  contents: write
-  pull-requests: write
+liberdades :
+  conteúdo : escrever
+  transmissões de pull : escrever
 
-jobs:
-  merge-back:
-    if: ${{ github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'hotfix/') }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
+empregos :
+  mesclar novamente :
+    se : ${{ github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'hotfix/') }}
+    execute em : ubuntu-latest
+    passos :
+      - nome : Checkout do código
+        usos : ações/checkout@v4
 
-      - name: Configurar Git
-        run: |
-          git config --global user.name "GitHub Actions"
+      - nome : Configurar Git
+        correr : |
+          git config --global user.name "Ações do GitHub"
           git config --global user.email "actions@github.com"
-
-      - name: Criar Pull Request da master para dev
-        id: create_pr
-        run: |
-          PR_URL=$(gh pr create \
+      - name : Criar Pull Request do master para dev
+        id : criar_pr
+        correr : |
+          PR_URL=$(gh pr criar \
             --base dev \
-            --head master \
-            --title "Merge back hotfix para dev" \
-            --body "Sincronizando as correções da master para dev.")
+            --chefe de departamento \
+            --title "Mesclar de volta o hotfix para dev" \
+            --body "Sincronizando as correções do master para dev.")
           PR_NUMBER=$(echo $PR_URL | grep -oE '[0-9]+$')
-          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-        env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+          eco "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+          eco "PR_URL=$PR_URL" >> $GITHUB_ENV
+        ambiente :
+          GH_TOKEN : ${{ secrets.PAT_TOKEN }}
 
-      - name: Mesclar PR automaticamente (Squash)
-        if: env.PR_NUMBER != ''
-        run: |
-          gh pr merge $PR_NUMBER --squash
-        env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+      - nome : Mesclar PR automaticamente (Squash)
+        se : env.PR_NUMBER != ''
+        correr : |
+          gh pr mesclar $PR_NUMBER --squash
+        ambiente :
+          GH_TOKEN : ${{ secrets.PAT_TOKEN }}
 
-      - name: Notificar no Slack (Erro)
-        if: failure()
-        run: |
-          curl -X POST -H 'Content-type: application/json' --data '{
-            "text": "Ocorreu um erro de Hotfix ao tentar mesclar o PR #${{ env.PR_NUMBER }} \n*Link:* #${{ env.PR_URL }}"
-          }' ${{ secrets.SLACK }}
+      - nome : Notificar no Slack (Erro)
+        se : falha()
+        correr : |
+          curl -X POST -H 'Tipo de conteúdo: application/json' --data '{
+            "text": "Ocorreu um erro ao tentar mesclar o PR #${{ env.PR_NUMBER }} \n*Link:* ${{ env.PR_URL }}"
+          }' ${{ segredos.SLACK }}
