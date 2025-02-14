@@ -47,10 +47,6 @@ jobs:
       - name: Run PHPUnit tests with coverage
         run: docker exec app_back vendor/bin/phpunit --coverage-clover=coverage.xml --log-junit=junit.xml
 
-  coverage:
-    needs: tests
-    runs-on: ubuntu-latest
-    steps:
       - name: Extract coverage
         id: coverage_check
         run: |
@@ -67,10 +63,6 @@ jobs:
           echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
           echo "Cobertura calculada: $COVERAGE%"
 
-  report:
-    needs: coverage
-    runs-on: ubuntu-latest
-    steps:
       - name: Parse junit.xml
         id: parse_junit
         run: |
