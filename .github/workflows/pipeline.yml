@@ -1,0 +1,112 @@
+name: Pipeline
+
+on:
+  pull_request:
+
+jobs:
+  Docker:
+    runs-on: ubuntu-latest
+    env:
+      DB_DATABASE: "digitalAccountTest"
+      MSSQL_SA_PASSWORD: "4Dm1n@GitHub2024!"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: xdebug, pdo_sqlsrv, sqlsrv
+
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.testing.example', '.env');"
+
+      - name: Docker Compose
+        run: docker compose up -d 
+
+  Build:
+    needs: Docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Dependencies
+        run: docker exec app_back composer install --no-interaction --prefer-dist
+
+      - name: Create Database
+        run: docker exec db-backend /opt/mssql-tools18/bin/sqlcmd -U sa -P ${{ env.MSSQL_SA_PASSWORD }} -Q "CREATE DATABASE ${{ env.DB_DATABASE }}"
+
+      - name: Generate key
+        run: docker exec app_back php artisan key:generate
+
+      - name: Run migration
+        run: docker exec app_back php artisan migrate
+
+  Tests:
+    needs: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run PHPUnit tests with coverage
+        run: docker exec app_back vendor/bin/phpunit --coverage-clover=coverage.xml --log-junit=junit.xml
+
+      - name: Extract coverage
+        id: coverage_check
+        run: |
+          COVERAGE=$(php -r "
+              libxml_use_internal_errors(true);
+              \$xml = simplexml_load_file('coverage.xml');
+              if (\$xml === false) {
+                  echo 'Erro ao carregar o arquivo coverage.xml';
+                  exit(1);
+              }
+              \$coverage = (\$xml->project->metrics['coveredelements'] / \$xml->project->metrics['elements']) * 100;
+              echo round(\$coverage, 2);
+          ")
+          echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
+          echo "Cobertura calculada: $COVERAGE%"
+
+      - name: Parse junit.xml
+        id: parse_junit
+        run: |
+          TESTS=$(php -r "
+              \$xml = simplexml_load_file('junit.xml');
+              echo (int) \$xml->testsuite['tests'];
+          ")
+          FAILURES=$(php -r "
+              \$xml = simplexml_load_file('junit.xml');
+              echo (int) \$xml->testsuite['failures'];
+          ")
+          SKIPPED=$(php -r "
+              \$xml = simplexml_load_file('junit.xml');
+              echo (int) \$xml->testsuite['skipped'];
+          ")
+          TIME=$(php -r "
+              \$xml = simplexml_load_file('junit.xml');
+              echo (float) \$xml->testsuite['time'];
+          ")
+
+          echo "total_tests=$TESTS" >> $GITHUB_ENV
+          echo "failures=$FAILURES" >> $GITHUB_ENV
+          echo "skipped=$SKIPPED" >> $GITHUB_ENV
+          echo "execution_time=$TIME" >> $GITHUB_ENV
+
+      - name: Post test results
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          token: ${{ env.PAT_TOKEN }}
+          repository: ${{ github.repository }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ### PHPUnit Test Coverage Report 
+
+            - **Total Coverage:** ${{ env.COVERAGE }}%
+            - **Total Tests:** ${{ env.total_tests }}
+            - **Failures:** ${{ env.failures }}
+            - **Skipped:** ${{ env.skipped }}
+            - **Execution Time:** ${{ env.execution_time }} seconds
+
+      - name: Validate test failures
+        if: always()
+        run: |
+          if [ ${{ env.failures }} -gt 0 ]; then
+              echo "Existem falhas nos testes: ${{ env.failures }}"
+              exit 1
+          fi
