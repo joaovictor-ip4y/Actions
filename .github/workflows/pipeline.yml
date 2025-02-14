@@ -4,7 +4,7 @@ on:
   pull_request:
 
 jobs:
-  setup:
+  Docker:
     runs-on: ubuntu-latest
     env:
       DB_DATABASE: "digitalAccountTest"
@@ -24,7 +24,7 @@ jobs:
       - name: Docker Compose
         run: docker compose up -d 
 
-  install:
+  Database:
     needs: setup
     runs-on: ubuntu-latest
     steps:
@@ -40,7 +40,7 @@ jobs:
       - name: Run migration
         run: docker exec app_back php artisan migrate
 
-  tests:
+  Tests:
     needs: install
     runs-on: ubuntu-latest
     steps:
