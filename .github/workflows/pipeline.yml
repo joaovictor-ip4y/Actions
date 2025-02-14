@@ -13,7 +13,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -22,16 +21,19 @@ jobs:
 
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.testing.example', '.env');"
-  
-      - name: Docker Compose
-        run: docker compose up -d 
 
-        dependecias:
+      - name: Docker Compose
+        run: docker compose up -d
+
+  instalando_dependecia:
+    name: dependecia
+    needs: tests
+    runs-on: ubuntu-latest     
+
+    steps:
       - name: Install Dependencies
-        needs: tests
         run: docker exec app_back composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
-        #S
       - name: Create Database
         run: docker exec db-backend /opt/mssql-tools18/bin/sqlcmd -U sa -P ${{ env.MSSQL_SA_PASSWORD }} -C -Q "CREATE DATABASE ${{ env.DB_DATABASE }}"
 
@@ -40,13 +42,18 @@ jobs:
 
       - name: Run migration
         run: docker exec app_back php artisan migrate
+  
+  executar_teste:
+    name: execute_teste
+    needs: dependecia
+    runs-on: ubunto-latest
 
+    steps:
       - name: Run PHPUnit tests with coverage
         run: docker exec app_back vendor/bin/phpunit --coverage-clover=coverage.xml --log-junit=junit.xml
-
-        extrairtest:
+  
+      # Extrair cobertura do arquivo coverage.xml
       - name: Extract coverage
-        needs: Dependencias
         id: coverage_check
         run: |
           COVERAGE=$(php -r "
