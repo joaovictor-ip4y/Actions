@@ -8,9 +8,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      CONTAINER_SQLSERVER_NAME: "sqlserver"
+      DB_DATABASE: "digitalAccountTest"
       MSSQL_SA_PASSWORD: "4Dm1n@GitHub2024!"
-      WWWGROUP: "1000"
 
     steps:
       - uses: actions/checkout@v4
@@ -21,52 +20,33 @@ jobs:
           php-version: '8.3'
           extensions: xdebug, pdo_sqlsrv, sqlsrv
 
-      - name: Install SQLSRV Extensions
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y unixodbc-dev
-          sudo pecl install sqlsrv pdo_sqlsrv
-          echo "extension=sqlsrv.so" | sudo tee -a $(php -i | grep 'Loaded Configuration' | sed -E 's/.* => //')
-          echo "extension=pdo_sqlsrv.so" | sudo tee -a $(php -i | grep 'Loaded Configuration' | sed -E 's/.* => //')
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.testing.example', '.env');"
+  
+      - name: Docker Compose
+        run: docker compose up -d 
 
-      - name: Run Docker
-        run: docker compose up -d
-
-      - name: Ensure WWWGROUP is set
-        run: echo "WWWGROUP=1000" >> $GITHUB_ENV
-
+        Dependecias:        
       - name: Install Dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+        needs: tests
+        run: docker exec app_back composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
-      - name: Wait for SQL Server to be ready
-        run: |
-          for i in {1..50}; do
-            if docker exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${{ env.MSSQL_SA_PASSWORD }}" -Q "SELECT 1"; then
-              echo "SQL Server está pronto!"
-              break
-            fi
-            echo "Esperando SQL Server ficar pronto... Tentativa $i"
-            sleep 2
-          done
-
-      - name: Check if app_back container is running
-        run: |
-          if [ "$(docker ps -q -f name=app_back)" = "" ]; then
-            echo "O contêiner app_back não está rodando. Verifique os logs:"
-            docker logs app_back
-            exit 1
-          fi
+        #S
+      - name: Create Database
+        run: docker exec db-backend /opt/mssql-tools18/bin/sqlcmd -U sa -P ${{ env.MSSQL_SA_PASSWORD }} -C -Q "CREATE DATABASE ${{ env.DB_DATABASE }}"
 
       - name: Generate key
-        run: docker exec -it app_back php artisan key:generate
+        run: docker exec app_back php artisan key:generate
 
       - name: Run migration
-        run: docker exec -it app_back php artisan migrate --env=testing
+        run: docker exec app_back php artisan migrate
 
       - name: Run PHPUnit tests with coverage
-        run: docker exec -it app_back vendor/bin/phpunit --coverage-clover=coverage.xml --log-junit=junit.xml
+        run: docker exec app_back vendor/bin/phpunit --coverage-clover=coverage.xml --log-junit=junit.xml
 
+        Extracao test:
       - name: Extract coverage
+        needs: Dependencias
         id: coverage_check
         run: |
           COVERAGE=$(php -r "
@@ -82,6 +62,7 @@ jobs:
           echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
           echo "Cobertura calculada: $COVERAGE%"
 
+      # Parse junit.xml para obter dados adicionais
       - name: Parse junit.xml
         id: parse_junit
         run: |
@@ -107,6 +88,7 @@ jobs:
           echo "skipped=$SKIPPED" >> $GITHUB_ENV
           echo "execution_time=$TIME" >> $GITHUB_ENV
 
+      # Comentar resultados na PR
       - name: Post test results
         uses: peter-evans/create-or-update-comment@v2
         with:
@@ -123,7 +105,7 @@ jobs:
             - **Execution Time:** ${{ env.execution_time }} seconds
 
       - name: Validate test failures
-        if: always()
+        if: always() 
         run: |
           if [ ${{ env.failures }} -gt 0 ]; then
               echo "Existem falhas nos testes: ${{ env.failures }}"
