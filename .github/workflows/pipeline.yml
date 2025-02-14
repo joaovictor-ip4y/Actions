@@ -24,7 +24,7 @@ jobs:
       - name: Docker Compose
         run: docker compose up -d 
 
-  Database:
+  Build:
     needs: Docker
     runs-on: ubuntu-latest
     steps:
@@ -41,7 +41,7 @@ jobs:
         run: docker exec app_back php artisan migrate
 
   Tests:
-    needs: Database
+    needs: Build
     runs-on: ubuntu-latest
     steps:
       - name: Run PHPUnit tests with coverage
